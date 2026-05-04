@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickFare SaaS Pro | E-Book & Ad Engine</title>
+
+    <!-- Premium Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;700;900&family=Oswald:wght@500;700&family=Space+Grotesk:wght@700&family=Playfair+Display:wght@700&family=Outfit:wght@300;500;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Core Engine Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <div class="navbar">
+        <div class="logo">QuickFare <span>SaaS Pro</span></div>
+        <div class="nav-controls">
+            <button class="btn" onclick="canvas.clear(); canvas.backgroundColor='#000'; canvas.renderAll();"><i class="fas fa-trash-alt"></i> Clear</button>
+            <button class="btn btn-primary" onclick="downloadCurrentCanvas()"><i class="fas fa-download"></i> Download PNG</button>
+        </div>
+    </div>
+
+    <div class="app-body">
+        <!-- LEFT SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" onclick="switchTab('design')"><i class="fas fa-paint-brush"></i>
+                    Studio</button>
+                <button class="tab-btn" onclick="switchTab('ai')"><i class="fas fa-robot"></i> AI Kit Gen</button>
+            </div>
+
+            <!-- TAB 1: STUDIO (MANUAL EDITOR) -->
+            <div id="tab-design" class="tab-content active">
+                <div class="section">
+                    <h3 class="section-title">Insert Elements</h3>
+                    <div class="btn-row">
+                        <button class="btn" onclick="addText()"><i class="fas fa-font"></i> Heading</button>
+                        <button class="btn" onclick="addCard()"><i class="fas fa-square"></i> Glass Box</button>
+                    </div>
+                </div>
+                <div class="section flex-1">
+                    <h3 class="section-title">Pexels Backgrounds</h3>
+                    <div class="search-bar">
+                        <input type="text" id="pexels-search" placeholder="Search visuals..." value="Dark cyberpunk">
+                        <button onclick="fetchPexels()"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="gallery" id="pexels-gallery"></div>
+                </div>
+            </div>
+
+            <!-- TAB 2: AI GENERATOR -->
+            <div id="tab-ai" class="tab-content">
+                <div class="section highlight-section">
+                    <h3 class="section-title" style="color: var(--magic);">Qwen-72B Autopilot</h3>
+                    <p class="desc-text">Enter your niche. The AI will write a 15-page e-book, design social posts,
+                        fetch images, and build the entire funnel into your asset manager.</p>
+
+                    <textarea class="input-textarea" id="ai-topic"
+                        placeholder="e.g., E-commerce Dropshipping in Pakistan without inventory..."></textarea>
+
+                    <button class="btn-magic" onclick="generateFullProduct()"><i class="fas fa-bolt"></i> Auto-Generate
+                        Full Kit</button>
+                </div>
+            </div>
+        </div>
+
+    <!-- MAIN WORKSPACE -->
+        <div class="workspace">
+            <div id="artboard-wrapper">
+                <canvas id="artboard" width="1080" height="1080"></canvas>
+            </div>
+
+            <div id="view-ebook" class="ebook-view" style="display:none;">
+                <!-- AI Generated E-Book Content -->
+            </div>
+
+            <!-- ASSET STRIP (BOTTOM) -->
+            <div class="asset-strip" id="asset-strip">
+                <div class="asset-item active" onclick="loadCanvasAsset('manual')">
+                    <i class="fas fa-plus"></i><br>Scratchpad
+                </div>
+                <div class="asset-item" onclick="loadCanvasAsset('cover')">
+                    <i class="fas fa-book"></i><br>Cover
+                </div>
+                <div class="asset-item" onclick="loadCanvasAsset('post')">
+                    <i class="fas fa-image"></i><br>Post
+                </div>
+                <div class="asset-item" onclick="loadCanvasAsset('reel')">
+                    <i class="fas fa-video"></i><br>Reel
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR (PROPERTIES & LAYERS) -->
+        <div class="properties-panel" id="properties-panel">
+            <div class="section">
+                <h3 class="section-title">Layer Matrix</h3>
+                <div id="layer-list" class="layer-list"></div>
+            </div>
+            <div id="dynamic-properties" class="element-properties">
+                <div class="empty-state"><i class="fas fa-mouse-pointer"></i><br>Select a layer to edit properties.</div>
+            </div>
+            
+            <div id="strategy-panel" class="section" style="display:none; margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                <h3 class="section-title" style="color:var(--magic);">AI Strategy</h3>
+                <div id="ai-results" style="font-size:12px; color:#ccc; line-height:1.6;"></div>
+                <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="downloadKitZip()"><i class="fas fa-download"></i> Download Full Kit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADER & TOAST -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div id="loader-text">PROCESSING...</div>
+    </div>
+    <div id="toast">Success!</div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/export.js"></script>
+</body>
+
+</html>
